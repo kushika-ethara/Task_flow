@@ -5,6 +5,13 @@ A full-stack collaborative task management web app built with **Python/Flask**. 
 🚀 **Live:** [https://taskflow-production-55fa.up.railway.app](https://taskflow-production-55fa.up.railway.app)
 📦 **Repo:** [https://github.com/kushika-ethara/Task_flow](https://github.com/kushika-ethara/Task_flow)
 
+### Demo Accounts
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | alice@demo.com | password |
+| Member | bob@demo.com | password |
+
 ---
 
 ## Features
