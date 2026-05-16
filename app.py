@@ -420,18 +420,6 @@ def forbidden(e):
 def not_found(e):
     return render_template('error.html', code=404, message="Page not found."), 404
 
-@app.errorhandler(500)
-def internal_error(e):
-    db.session.rollback()
-    return render_template('error.html', code=500, message="An internal server error occurred."), 500
-
-
-# ─── Health Check (Railway uses this to verify the service is up) ─────────────
-
-@app.route('/health')
-def health():
-    return jsonify({'status': 'ok'}), 200
-
 
 # ─── Init ────────────────────────────────────────────────────────────────────
 

@@ -2,9 +2,5 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "gunicorn app:app --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120 --log-level info"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
-
-[build.env]
-NIXPACKS_PYTHON_VERSION = "3.11"
