@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Project' if project else 'New Project' }} — TaskFlow{% endblock %}
+{% block page_title %}{{ 'Edit Project' if project else 'New Project' }}{% endblock %}
+
+{% block content %}
+<div class="card form-card">
+  <form method="POST">
+    <div class="form-group">
+      <label class="form-label">Project Name *</label>
+      <input type="text" name="name" class="form-control" placeholder="e.g. Website Redesign" required
+             value="{{ project.name if project else '' }}" autofocus/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea name="description" class="form-control" placeholder="What is this project about?">{{ project.description if project else '' }}</textarea>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">{{ 'Save Changes' if project else 'Create Project' }}</button>
+      <a href="{{ url_for('project_detail', project_id=project.id) if project else url_for('projects') }}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

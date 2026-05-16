@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}My Tasks — TaskFlow{% endblock %}
+{% block page_title %}My Tasks{% endblock %}
+
+{% block content %}
+{% if tasks %}
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Task</th><th>Project</th><th>Status</th><th>Priority</th><th>Due Date</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for task in tasks %}
+          <tr>
+            <td><strong>{{ task.title }}</strong>
+              {% if task.description %}<div style="font-size:12px;color:var(--text3);margin-top:2px;">{{ task.description[:60] }}{% if task.description|length > 60 %}…{% endif %}</div>{% endif %}
+            </td>
+            <td><a href="{{ url_for('project_detail', project_id=task.project.id) }}">{{ task.project.name }}</a></td>
+            <td>
+              {% if task.status == 'To Do' %}<span class="badge badge-todo">To Do</span>
+              {% elif task.status == 'In Progress' %}<span class="badge badge-progress">In Progress</span>
+              {% else %}<span class="badge badge-done">Done</span>{% endif %}
+            </td>
+            <td>
+              {% if task.priority == 'High' %}<span class="badge badge-high">High</span>
+              {% elif task.priority == 'Medium' %}<span class="badge badge-medium">Medium</span>
+              {% else %}<span class="badge badge-low">Low</span>{% endif %}
+            </td>
+            <td class="{{ 'overdue' if task.is_overdue }}" style="{{ 'color:var(--red)' if task.is_overdue }}">
+              {% if task.due_date %}
+                {{ task.due_date.strftime('%b %d, %Y') }}
+                {% if task.is_overdue %} <span class="badge badge-overdue" style="margin-left:4px;">Overdue</span>{% endif %}
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-ghost btn-sm">Edit</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% else %}
+  <div class="empty-state" style="margin-top:60px;">
+    <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    <p style="margin-top:12px;font-size:16px;">No tasks assigned to you.</p>
+    <p style="margin-top:6px;">Ask a project admin to assign tasks to you.</p>
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — TaskFlow{% endblock %}
+{% block page_title %}Dashboard <span>Overview</span>{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('new_project') }}" class="btn btn-primary btn-sm">+ New Project</a>
+{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Total Tasks</div>
+    <div class="stat-value">{{ stats.total }}</div>
+  </div>
+  <div class="stat-card accent">
+    <div class="stat-label">In Progress</div>
+    <div class="stat-value">{{ stats.in_progress }}</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-label">Done</div>
+    <div class="stat-value">{{ stats.done }}</div>
+  </div>
+  <div class="stat-card yellow">
+    <div class="stat-label">To Do</div>
+    <div class="stat-value">{{ stats.todo }}</div>
+  </div>
+  <div class="stat-card red">
+    <div class="stat-label">Overdue</div>
+    <div class="stat-value">{{ stats.overdue }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">My Tasks</div>
+    <div class="stat-value">{{ stats.my_tasks }}</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+  <!-- Recent Tasks -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Recent Tasks</div>
+      <a href="{{ url_for('my_tasks') }}" class="btn btn-ghost btn-sm">View mine →</a>
+    </div>
+    {% if recent_tasks %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Task</th><th>Project</th><th>Status</th><th>Due</th></tr>
+          </thead>
+          <tbody>
+            {% for task in recent_tasks %}
+            <tr>
+              <td><strong>{{ task.title }}</strong></td>
+              <td><a href="{{ url_for('project_detail', project_id=task.project.id) }}">{{ task.project.name }}</a></td>
+              <td>
+                {% if task.status == 'To Do' %}<span class="badge badge-todo">To Do</span>
+                {% elif task.status == 'In Progress' %}<span class="badge badge-progress">In Progress</span>
+                {% else %}<span class="badge badge-done">Done</span>{% endif %}
+              </td>
+              <td class="task-due {{ 'overdue' if task.is_overdue }}">
+                {{ task.due_date.strftime('%b %d') if task.due_date else '—' }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p>No tasks yet. Create a project and start adding tasks.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Projects -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Your Projects</div>
+      <a href="{{ url_for('projects') }}" class="btn btn-ghost btn-sm">All →</a>
+    </div>
+    {% if projects %}
+      {% for project in projects[:6] %}
+        {% set task_count = project.tasks|length %}
+        {% set done_count = project.tasks|selectattr('status', 'eq', 'Done')|list|length %}
+        {% set pct = ((done_count / task_count * 100)|int) if task_count > 0 else 0 %}
+        <div style="margin-bottom:14px;">
+          <div class="flex-between" style="margin-bottom:6px;">
+            <a href="{{ url_for('project_detail', project_id=project.id) }}" style="font-size:14px;font-weight:500;color:var(--text);">{{ project.name }}</a>
+            <span class="text-muted" style="font-size:12px;">{{ done_count }}/{{ task_count }}</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" style="width:{{ pct }}%"></div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <p>No projects yet. <a href="{{ url_for('new_project') }}">Create one →</a></p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

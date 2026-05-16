@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ 'Sign Up' if mode == 'signup' else 'Sign In' }} — TaskFlow</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">⬡ TaskFlow</div>
+    <div class="auth-title">{{ 'Create your account' if mode == 'signup' else 'Welcome back' }}</div>
+    <div class="auth-sub">{{ 'Start managing tasks with your team.' if mode == 'signup' else 'Sign in to your workspace.' }}</div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'error' if category == 'error' else 'success' }}" style="margin-bottom:16px">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+      {% if mode == 'signup' %}
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" name="name" class="form-control" placeholder="Your name" required autofocus/>
+        </div>
+      {% endif %}
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" name="email" class="form-control" placeholder="you@example.com" required {% if mode == 'login' %}autofocus{% endif %}/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" placeholder="{% if mode == 'signup' %}Min 6 characters{% else %}Your password{% endif %}" required/>
+      </div>
+      {% if mode == 'signup' %}
+        <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <input type="password" name="confirm_password" class="form-control" placeholder="Repeat password" required/>
+        </div>
+      {% else %}
+        <div class="form-group" style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" name="remember" id="remember"/>
+          <label for="remember" style="font-size:13px;color:var(--text3);cursor:pointer;">Remember me</label>
+        </div>
+      {% endif %}
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;">
+        {{ 'Create Account' if mode == 'signup' else 'Sign In' }}
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      {% if mode == 'signup' %}
+        Already have an account? <a href="{{ url_for('login') }}">Sign in</a>
+      {% else %}
+        Don't have an account? <a href="{{ url_for('signup') }}">Sign up</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+</body>
+</html>

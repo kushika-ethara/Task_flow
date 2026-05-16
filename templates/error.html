@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Error {{ code }} — TaskFlow</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+<div class="error-wrap">
+  <div>
+    <div class="error-code">{{ code }}</div>
+    <div style="font-size:20px;font-weight:600;margin-bottom:10px;">{{ message }}</div>
+    <a href="javascript:history.back()" class="btn btn-ghost">← Go Back</a>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-primary" style="margin-left:8px;">Dashboard</a>
+  </div>
+</div>
+</body>
+</html>

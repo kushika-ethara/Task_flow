@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TaskFlow — Team Task Manager</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+<div class="landing">
+  <div class="landing-inner">
+    <div class="landing-logo">TaskFlow</div>
+    <h1>Manage tasks.<br><span>Ship faster.</span></h1>
+    <p>A collaborative task manager for teams. Create projects, assign tasks, track progress — all in one place.</p>
+    <div class="landing-actions">
+      <a href="{{ url_for('signup') }}" class="btn btn-primary">Get Started Free</a>
+      <a href="{{ url_for('login') }}" class="btn btn-ghost">Sign In →</a>
+    </div>
+    <div style="margin-top:48px; display:flex; justify-content:center; gap:32px; color:var(--text3); font-size:13px;">
+      <div>✓ Role-based access</div>
+      <div>✓ Kanban boards</div>
+      <div>✓ Priority & due dates</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

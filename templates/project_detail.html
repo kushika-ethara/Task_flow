@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }} — TaskFlow{% endblock %}
+{% block page_title %}{{ project.name }} <span>{{ role }}</span>{% endblock %}
+
+{% block topbar_actions %}
+  {% if role == 'Admin' %}
+    <a href="{{ url_for('new_task', project_id=project.id) }}" class="btn btn-primary btn-sm">+ Add Task</a>
+    <a href="{{ url_for('edit_project', project_id=project.id) }}" class="btn btn-ghost btn-sm">Edit</a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;">
+
+  <!-- Kanban Board -->
+  <div>
+    <div class="kanban">
+      {% for col_name, col_tasks in task_groups.items() %}
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title">{{ col_name }}</div>
+            <div class="kanban-count">{{ col_tasks|length }}</div>
+          </div>
+          {% for task in col_tasks %}
+            <div class="task-card" onclick="location.href='{{ url_for('edit_task', task_id=task.id) }}'">
+              <div class="task-card-title">{{ task.title }}</div>
+              <div class="task-card-meta">
+                {% if task.priority == 'High' %}<span class="badge badge-high">High</span>
+                {% elif task.priority == 'Medium' %}<span class="badge badge-medium">Medium</span>
+                {% else %}<span class="badge badge-low">Low</span>{% endif %}
+
+                {% if task.is_overdue %}
+                  <span class="badge badge-overdue">Overdue</span>
+                {% elif task.due_date %}
+                  <span class="task-due">Due {{ task.due_date.strftime('%b %d') }}</span>
+                {% endif %}
+
+                {% if task.assignee %}
+                  <span class="task-assignee">{{ task.assignee.name }}</span>
+                {% endif %}
+              </div>
+              {% if role == 'Admin' %}
+                <div style="margin-top:10px;display:flex;gap:6px;" onclick="event.stopPropagation()">
+                  {% if col_name != 'To Do' %}
+                    <button class="btn btn-ghost btn-sm" onclick="updateStatus({{ task.id }}, 'To Do', this)">← To Do</button>
+                  {% endif %}
+                  {% if col_name != 'In Progress' %}
+                    <button class="btn btn-ghost btn-sm" onclick="updateStatus({{ task.id }}, 'In Progress', this)">In Progress</button>
+                  {% endif %}
+                  {% if col_name != 'Done' %}
+                    <button class="btn btn-ghost btn-sm" onclick="updateStatus({{ task.id }}, 'Done', this)">Done ✓</button>
+                  {% endif %}
+                </div>
+              {% elif task.assignee_id == current_user.id %}
+                <div style="margin-top:10px;display:flex;gap:6px;" onclick="event.stopPropagation()">
+                  {% if col_name != 'In Progress' %}
+                    <button class="btn btn-ghost btn-sm" onclick="updateStatus({{ task.id }}, 'In Progress', this)">Start</button>
+                  {% endif %}
+                  {% if col_name != 'Done' %}
+                    <button class="btn btn-ghost btn-sm" onclick="updateStatus({{ task.id }}, 'Done', this)">Done ✓</button>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+          {% else %}
+            <div style="text-align:center;padding:24px 0;color:var(--text3);font-size:13px;">Empty</div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Sidebar Panel -->
+  <div>
+    <!-- Members Card -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-header">
+        <div class="card-title">Members ({{ member_roles|length }})</div>
+        {% if role == 'Admin' %}
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('add-member-modal').classList.add('open')">+ Add</button>
+        {% endif %}
+      </div>
+      {% for mr in member_roles %}
+        <div class="member-row">
+          <div class="member-info">
+            <div class="avatar">{{ mr.user.name[0].upper() }}</div>
+            <div>
+              <div class="member-name">{{ mr.user.name }}</div>
+              <div class="member-email">{{ mr.user.email }}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="badge badge-{{ 'admin' if mr.role == 'Admin' else 'member' }}">{{ mr.role }}</span>
+            {% if role == 'Admin' and mr.user.id != project.owner_id and mr.user.id != current_user.id %}
+              <form method="POST" action="{{ url_for('remove_member', project_id=project.id, user_id=mr.user.id) }}" onsubmit="return confirm('Remove this member?')">
+                <button type="submit" class="btn btn-danger btn-sm">×</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Project Info -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px;">About</div>
+      <p style="font-size:13px;color:var(--text3);line-height:1.6;">{{ project.description or 'No description provided.' }}</p>
+      <div class="divider"></div>
+      <div style="font-size:12px;color:var(--text3);">
+        Created {{ project.created_at.strftime('%b %d, %Y') }}
+      </div>
+      {% if role == 'Admin' %}
+        <div class="divider"></div>
+        <form method="POST" action="{{ url_for('delete_project', project_id=project.id) }}" onsubmit="return confirm('Delete this project and all its tasks? This cannot be undone.')">
+          <button type="submit" class="btn btn-danger btn-sm">Delete Project</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Add Member Modal -->
+{% if role == 'Admin' %}
+<div class="modal-backdrop" id="add-member-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('add-member-modal').classList.remove('open')">×</button>
+    <div class="modal-title">Add Member</div>
+    <form method="POST" action="{{ url_for('add_member', project_id=project.id) }}">
+      <div class="form-group">
+        <label class="form-label">Member Email</label>
+        <input type="email" name="email" class="form-control" placeholder="member@example.com" required autofocus/>
+      </div>
+      <button type="submit" class="btn btn-primary">Add Member</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<script>
+async function updateStatus(taskId, newStatus, btn) {
+  btn.disabled = true;
+  btn.textContent = '...';
+  try {
+    const res = await fetch(`/tasks/${taskId}/status`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({status: newStatus})
+    });
+    if (res.ok) location.reload();
+    else { btn.disabled = false; btn.textContent = 'Error'; }
+  } catch(e) { btn.disabled = false; }
+}
+
+// Close modal on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+</script>
+{% endblock %}
