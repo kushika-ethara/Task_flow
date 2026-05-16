@@ -72,24 +72,36 @@ Visit: http://localhost:5000
 
 ## Deployment on Railway
 
-### Steps
+The app is live at: **https://taskflow-production-55fa.up.railway.app**
 
-1. Push your code to GitHub.
+### How it was deployed
 
-2. Go to [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub repo**.
+Deployed via the [Railway CLI](https://docs.railway.app/develop/cli) with a PostgreSQL database add-on.
 
-3. Add a **PostgreSQL** plugin in Railway dashboard.
+```bash
+railway login
+railway init --name TaskFlow
+railway add --database postgres
+railway add --service TaskFlow
+railway service link TaskFlow
+railway variables --set "SECRET_KEY=your-secret-key"
+railway up --detach
+railway domain
+```
 
-4. Set these **Environment Variables** in Railway:
-   ```
-   SECRET_KEY=your-very-secret-key
-   DATABASE_URL=<auto-filled by Railway PostgreSQL plugin>
-   PORT=5000
-   ```
+### Re-deploying
 
-5. Railway auto-detects the `Procfile` and deploys.
+```bash
+railway up --detach
+```
 
-6. Your app is live at the Railway-provided URL!
+### Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `SECRET_KEY` | Flask secret key (set manually) |
+| `DATABASE_URL` | Auto-injected by Railway PostgreSQL |
+| `PORT` | Auto-injected by Railway |
 
 > **Note**: The app auto-creates tables on startup via `db.create_all()` — no migration needed.
 
