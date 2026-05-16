@@ -423,8 +423,14 @@ def not_found(e):
 
 # ─── Init ────────────────────────────────────────────────────────────────────
 
-with app.app_context():
-    db.create_all()
+_db_initialized = False
+
+@app.before_request
+def init_db():
+    global _db_initialized
+    if not _db_initialized:
+        db.create_all()
+        _db_initialized = True
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
