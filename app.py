@@ -8,9 +8,12 @@ import os
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
-# Railway PostgreSQL plugin provides DATABASE_URL with "postgres://" scheme;
-# SQLAlchemy 1.4+ requires "postgresql://" — fix it transparently.
-_db_url = os.environ.get('DATABASE_URL', 'sqlite:///taskmanager.db')
+# Railway PostgreSQL injects DATABASE_URL with the private network address.
+# We use DATABASE_PUBLIC_URL (public proxy) when available to avoid private network issues.
+_db_url = (
+    os.environ.get('DATABASE_PUBLIC_URL') or
+    os.environ.get('DATABASE_URL', 'sqlite:///taskmanager.db')
+)
 if _db_url.startswith('postgres://'):
     _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
