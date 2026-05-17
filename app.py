@@ -165,9 +165,15 @@ def logout():
 @login_required
 def dashboard():
     user_projects = current_user.projects.all()
-    all_tasks = Task.query.filter(
-        Task.project_id.in_([p.id for p in user_projects])
-    ).all()
+    project_ids = [p.id for p in user_projects]
+
+    if project_ids:
+        all_tasks = Task.query.filter(Task.project_id.in_(project_ids)).all()
+        recent_tasks = Task.query.filter(Task.project_id.in_(project_ids))\
+            .order_by(Task.created_at.desc()).limit(5).all()
+    else:
+        all_tasks = []
+        recent_tasks = []
 
     stats = {
         'total': len(all_tasks),
@@ -177,10 +183,6 @@ def dashboard():
         'overdue': sum(1 for t in all_tasks if t.is_overdue),
         'my_tasks': sum(1 for t in all_tasks if t.assignee_id == current_user.id),
     }
-
-    recent_tasks = Task.query.filter(
-        Task.project_id.in_([p.id for p in user_projects])
-    ).order_by(Task.created_at.desc()).limit(5).all()
 
     return render_template('dashboard.html', stats=stats, projects=user_projects,
                            recent_tasks=recent_tasks, today=date.today())
