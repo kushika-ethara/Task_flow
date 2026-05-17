@@ -421,16 +421,20 @@ def not_found(e):
     return render_template('error.html', code=404, message="Page not found."), 404
 
 
+# ─── Health Check ────────────────────────────────────────────────────────────
+
+@app.route('/health')
+def health():
+    return 'OK', 200
+
+
 # ─── Init ────────────────────────────────────────────────────────────────────
 
-_db_initialized = False
-
-@app.before_request
-def init_db():
-    global _db_initialized
-    if not _db_initialized:
+with app.app_context():
+    try:
         db.create_all()
-        _db_initialized = True
+    except Exception as e:
+        print(f"Warning: Could not create tables on startup: {e}")
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
