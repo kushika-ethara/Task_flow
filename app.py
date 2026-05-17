@@ -436,7 +436,8 @@ def internal_error(e):
     import traceback
     tb = traceback.format_exc()
     print("500 ERROR:\n", tb)
-    return render_template('error.html', code=500, message=str(e)), 500
+    # Show traceback in browser so we can diagnose (remove after fix)
+    return f"<pre style='background:#111;color:#f88;padding:20px;font-size:13px'><b>500 Internal Server Error</b>\n\n{tb}</pre>", 500
 
 
 # ─── Debug (temporary) ───────────────────────────────────────────────────────
@@ -474,8 +475,6 @@ def debug_error():
 
 
 # ─── Init DB ─────────────────────────────────────────────────────────────────
-# Use before_request with a flag so tables are created on first request,
-# not at import time (which blocks gunicorn startup for up to 25s).
 _db_ready = False
 
 @app.before_request
@@ -487,8 +486,7 @@ def ensure_db():
             _db_ready = True
             print("DB tables ready.")
         except Exception as e:
-            print(f"DB init error: {e}")
-            # Don't set _db_ready=True so we retry next request
+            print(f"DB init error (will retry): {e}")
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
