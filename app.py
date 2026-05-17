@@ -439,6 +439,19 @@ def internal_error(e):
     return render_template('error.html', code=500, message=str(e)), 500
 
 
+# ─── Debug (temporary) ───────────────────────────────────────────────────────
+
+@app.route('/debug-error')
+def debug_error():
+    import traceback
+    try:
+        db.session.execute(db.text('SELECT 1'))
+        user_count = db.session.execute(db.text('SELECT COUNT(*) FROM "user"')).scalar()
+        return f'DB OK — user rows: {user_count}', 200
+    except Exception as e:
+        return f'DB ERROR: {traceback.format_exc()}', 500
+
+
 # ─── Health Check ────────────────────────────────────────────────────────────
 
 @app.route('/health')
