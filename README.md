@@ -2,15 +2,15 @@
 
 A full-stack collaborative task management web app built with **Python/Flask**. Create projects, manage teams, assign tasks, and track progress on a Kanban board — all in a clean dark-themed UI.
 
-🚀 **Live:** [https://taskflow-production-55fa.up.railway.app](https://taskflow-production-55fa.up.railway.app)
+🚀 **Live:** [https://taskflow-production-50d9.up.railway.app](https://taskflow-production-50d9.up.railway.app)
 📦 **Repo:** [https://github.com/kushika-ethara/Task_flow](https://github.com/kushika-ethara/Task_flow)
 
 ### Demo Accounts
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | alice@demo.com | password |
-| Member | bob@demo.com | password |
+| Admin | alice@test.com | 123456 |
+| Member | bob@test.com | 123456 |
 
 ---
 
@@ -192,8 +192,8 @@ This creates a sample project with 5 tasks and two accounts:
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | alice@demo.com | password |
-| Member | bob@demo.com | password |
+| Admin | alice@test.com | 123456 |
+| Member | bob@test.com | 123456 |
 
 ### 6. Run the app
 ```bash
@@ -207,7 +207,7 @@ Visit: [http://localhost:5000](http://localhost:5000)
 ## Deployment on Railway
 
 ### Live URL
-**[https://taskflow-production-55fa.up.railway.app](https://taskflow-production-55fa.up.railway.app)**
+**[https://taskflow-production-50d9.up.railway.app](https://taskflow-production-50d9.up.railway.app)**
 
 ### Infrastructure
 - **Platform:** Railway (Nixpacks builder)
