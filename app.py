@@ -430,6 +430,14 @@ def forbidden(e):
 def not_found(e):
     return render_template('error.html', code=404, message="Page not found."), 404
 
+@app.errorhandler(500)
+def internal_error(e):
+    db.session.rollback()
+    import traceback
+    tb = traceback.format_exc()
+    print("500 ERROR:\n", tb)
+    return render_template('error.html', code=500, message=str(e)), 500
+
 
 # ─── Health Check ────────────────────────────────────────────────────────────
 
@@ -438,24 +446,36 @@ def health():
     return 'OK', 200
 
 
-# ─── Init DB ─────────────────────────────────────────────────────────────────
-# Retry db.create_all() with backoff so it survives a slow Postgres startup.
-# Called at module import time so tables exist before gunicorn serves requests.
-def _init_db_with_retry(retries=5, delay=5):
-    import time
-    for attempt in range(1, retries + 1):
-        try:
-            with app.app_context():
-                db.create_all()
-            print("DB tables ready.")
-            return
-        except Exception as e:
-            print(f"DB init attempt {attempt}/{retries} failed: {e}")
-            if attempt < retries:
-                time.sleep(delay)
-    print("WARNING: DB init failed after all retries — tables may not exist.")
+# ─── Debug (temporary — remove after fixing) ─────────────────────────────────
 
-_init_db_with_retry()
+@app.route('/debug-error')
+def debug_error():
+    """Trigger a test request to expose any startup/DB errors in the response."""
+    import traceback
+    try:
+        db.session.execute(db.text('SELECT 1'))
+        user_count = db.session.execute(db.text('SELECT COUNT(*) FROM "user"')).scalar()
+        return f'DB OK — user rows: {user_count}', 200
+    except Exception as e:
+        return f'DB ERROR: {traceback.format_exc()}', 500
+
+
+# ─── Init DB ─────────────────────────────────────────────────────────────────
+# Use before_request with a flag so tables are created on first request,
+# not at import time (which blocks gunicorn startup for up to 25s).
+_db_ready = False
+
+@app.before_request
+def ensure_db():
+    global _db_ready
+    if not _db_ready:
+        try:
+            db.create_all()
+            _db_ready = True
+            print("DB tables ready.")
+        except Exception as e:
+            print(f"DB init error: {e}")
+            # Don't set _db_ready=True so we retry next request
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
