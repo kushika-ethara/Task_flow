@@ -13,8 +13,16 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-i
 _db_url = os.environ.get('DATABASE_URL', 'sqlite:///taskmanager.db')
 if _db_url.startswith('postgres://'):
     _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
+# Add connect_timeout to prevent hanging on startup
+if _db_url.startswith('postgresql://'):
+    _db_url = _db_url + ('&' if '?' in _db_url else '?') + 'connect_timeout=10'
 app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': 300,
+    'connect_args': {'connect_timeout': 10},
+}
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
@@ -430,11 +438,17 @@ def health():
 
 # ─── Init ────────────────────────────────────────────────────────────────────
 
-with app.app_context():
-    try:
-        db.create_all()
-    except Exception as e:
-        print(f"Warning: Could not create tables on startup: {e}")
+_db_initialized = False
+
+@app.before_request
+def init_db():
+    global _db_initialized
+    if not _db_initialized:
+        try:
+            db.create_all()
+        except Exception as e:
+            print(f"DB init error: {e}")
+        _db_initialized = True
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
