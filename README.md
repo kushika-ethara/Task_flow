@@ -9,8 +9,8 @@ A full-stack collaborative task management web app built with **Python/Flask**. 
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | alice@test.com | 123456 |
-| Member | bob@test.com | 123456 |
+| Admin | alice@demo.com | password |
+| Member | bob@demo.com | password |
 
 ---
 
@@ -192,8 +192,8 @@ This creates a sample project with 5 tasks and two accounts:
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | alice@test.com | 123456 |
-| Member | bob@test.com | 123456 |
+| Admin | alice@demo.com | password |
+| Member | bob@demo.com | password |
 
 ### 6. Run the app
 ```bash

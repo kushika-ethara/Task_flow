@@ -13,16 +13,16 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-i
 _db_url = os.environ.get('DATABASE_URL', 'sqlite:///taskmanager.db')
 if _db_url.startswith('postgres://'):
     _db_url = _db_url.replace('postgres://', 'postgresql://', 1)
-# Add connect_timeout to prevent hanging on startup
-if _db_url.startswith('postgresql://'):
-    _db_url = _db_url + ('&' if '?' in _db_url else '?') + 'connect_timeout=10'
 app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+_engine_options = {
     'pool_pre_ping': True,
     'pool_recycle': 300,
-    'connect_args': {'connect_timeout': 10},
 }
+# connect_timeout is a PostgreSQL-only libpq option passed via connect_args
+if _db_url.startswith('postgresql://'):
+    _engine_options['connect_args'] = {'connect_timeout': 30}
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = _engine_options
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
@@ -436,19 +436,24 @@ def health():
     return 'OK', 200
 
 
-# ─── Init ────────────────────────────────────────────────────────────────────
-
-_db_initialized = False
-
-@app.before_request
-def init_db():
-    global _db_initialized
-    if not _db_initialized:
+# ─── Init DB ─────────────────────────────────────────────────────────────────
+# Retry db.create_all() with backoff so it survives a slow Postgres startup.
+# Called at module import time so tables exist before gunicorn serves requests.
+def _init_db_with_retry(retries=5, delay=5):
+    import time
+    for attempt in range(1, retries + 1):
         try:
-            db.create_all()
+            with app.app_context():
+                db.create_all()
+            print("DB tables ready.")
+            return
         except Exception as e:
-            print(f"DB init error: {e}")
-        _db_initialized = True
+            print(f"DB init attempt {attempt}/{retries} failed: {e}")
+            if attempt < retries:
+                time.sleep(delay)
+    print("WARNING: DB init failed after all retries — tables may not exist.")
+
+_init_db_with_retry()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
